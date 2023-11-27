@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .card-body {
+            padding: 20px;
+            max-height: 300px; /* Defina a altura máxima da lista de produtos aqui */
+            overflow-y: auto; /* Adicione a barra de rolagem vertical conforme necessário */
+        }
+
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        #info-section {
+            margin-top: 20px;
+            margin-bottom: 50px; /* Adicionado espaço abaixo da seção de informações */
+        }
+
+        #checkout-section {
+            position: sticky;
+            bottom: 0; /* Posiciona o rodapé no fundo do contêiner */
+            background-color: white; /* Adiciona um fundo branco ao rodapé para melhor visibilidade */
+            z-index: 1000; /* Certifica-se de que o rodapé esteja acima dos outros elementos na pilha de z-index */
+        }
+
+        #products-section {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .search-input {
+            margin-bottom: 10px;
+        }
+
+        .cancelled {
+            text-decoration: line-through;
+            color: #dc3545; /* Vermelho para indicar cancelamento */
+        }
+
+        #shortcut-section {
+            margin-top: 20px;
+        }
+    </style>
+    <title>PDV - Ponto de Venda</title>
+</head>
+<body>
+
+<div class="container">
+    <!-- Seção Atalhos -->
+    <div id="shortcut-section">
+        <h5>Atalhos:</h5>
+        <p>F7: Selecionar Método de Pagamento</p>
+        <p>F9: Selecionar Cliente</p>
+        <p>F10: Finalizar Compra</p>
+        <p>F4: Cancelar Item (Digite o código do produto)</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Carrinho de Compras</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Lista de itens no carrinho -->
+                    <ul class="list-group" id="cart-list">
+                        <!-- Itens serão adicionados dinamicamente aqui -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Produtos Disponíveis</h5>
+                </div>
+                <div class="card-body" id="products-section">
+                    <!-- Campo de pesquisa -->
+                    <input type="text" class="form-control search-input" placeholder="Pesquisar produto" oninput="filtrarProdutos(this.value)">
+                    <!-- Lista de produtos disponíveis -->
+                    <ul class="list-group" id="available-products">
+                        <li class="list-group-item">
+                            <span>Produto 1</span>
+                            <button class="btn btn-primary btn-sm" onclick="adicionarAoCarrinho('Produto 1', 10.00)">Adicionar</button>
+                        </li>
+                        <li class="list-group-item">
+                            <span>Produto 2</span>
+                            <button class="btn btn-primary btn-sm" onclick="adicionarAoCarrinho('Produto 2', 20.00)">Adicionar</button>
+                        </li>
+                        <!-- Adicione mais produtos conforme necessário -->
+                        <!-- Exemplo adicional -->
+                        <li class="list-group-item">
+                            <span>Produto 3</span>
+                            <button class="btn btn-primary btn-sm" onclick="adicionarAoCarrinho('Produto 3', 15.00)">Adicionar</button>
+                        </li>
+                        <!-- Adicione mais produtos conforme necessário -->
+                        <li class="list-group-item">
+                            <span>Produto 4</span>
+                            <button class="btn btn-primary btn-sm" onclick="adicionarAoCarrinho('Produto 4', 25.00)">Adicionar</button>
+                        </li>
+                        <!-- Adicione mais produtos conforme necessário -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Seção "Finalizar Compra" -->
+    <div id="checkout-section" class="fixed-bottom">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="payment-options">
+                            <div class="form-group">
+                                <label for="paymentMethod">Método de Pagamento:</label>
+                                <select class="form-control" id="paymentMethod">
+                                    <option>Cartão de Crédito</option>
+                                    <option>Dinheiro</option>
+                                    <option>PIX</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerName">Nome do Cliente:</label>
+                                <input type="text" class="form-control" id="customerName" placeholder="Nome do Cliente">
+                            </div>
+                        </div>
+                        <button class="btn btn-success btn-block" onclick="finalizarCompra()">Finalizar Compra (F10)</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Resumo da Compra</h5>
+                        <p class="card-text"><strong>Subtotal:</strong> R$ <span id="subtotal">0.00</span></p>
+                        <p class="card-text"><strong>Total:</strong> R$ <span id="total">0.00</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Método de Pagamento -->
+<div class="modal" tabindex="-1" role="dialog" id="paymentModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Selecionar Método de Pagamento</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <select class="form-control" id="paymentMethodModal">
+                    <option>Cartão de Crédito</option>
+                    <option>Dinheiro</option>
+                    <option>PIX</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="selecionarMetodoPagamento()">Selecionar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Seleção de Cliente -->
+<div class="modal" tabindex="-1" role="dialog" id="customerModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Selecionar Cliente</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <select class="form-control" id="customerNameModal">
+                    <option>Cliente A</option>
+                    <option>Cliente B</option>
+                    <option>Cliente C</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="selecionarCliente()">Selecionar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var carrinho = [];
+    var subtotal = 0;
+
+    function adicionarAoCarrinho(produto, preco) {
+        carrinho.push({ produto: produto, preco: preco });
+        subtotal += preco;
+        atualizarCarrinho();
+    }
+
+    function cancelarItem(index) {
+        if (carrinho[index]) {
+            carrinho[index].cancelado = true;
+            subtotal -= carrinho[index].preco;
+            atualizarCarrinho();
+        }
+    }
+
+    function atualizarCarrinho() {
+        var carrinhoList = document.getElementById('cart-list');
+        carrinhoList.innerHTML = '';
+
+        carrinho.forEach(function (item, index) {
+            var novoItem = document.createElement('li');
+            novoItem.className = 'list-group-item';
+            novoItem.innerHTML = '<span class="' + (item.cancelado ? 'cancelled' : '') + '">' + item.produto + ' - R$ ' + item.preco.toFixed(2) + '</span>';
+
+            // Adiciona botão de cancelamento
+            var cancelarButton = document.createElement('button');
+            cancelarButton.className = 'btn btn-danger btn-sm';
+            cancelarButton.innerText = 'Cancelar';
+            cancelarButton.onclick = function () {
+                cancelarItem(index);
+            };
+
+            novoItem.appendChild(cancelarButton);
+            carrinhoList.appendChild(novoItem);
+        });
+
+        document.getElementById('subtotal').innerText = subtotal.toFixed(2);
+        document.getElementById('total').innerText = subtotal.toFixed(2);
+    }
+
+    function finalizarCompra() {
+        var paymentMethod = document.getElementById('paymentMethod').value;
+        var customerName = document.getElementById('customerName').value;
+
+        // Aqui você pode adicionar lógica para processar a compra, como enviar dados para um backend, etc.
+        alert('Compra finalizada!\n\nDetalhes:\nMétodo de Pagamento: ' + paymentMethod + '\nNome do Cliente: ' + customerName);
+    }
+
+    function filtrarProdutos(valor) {
+        var listaProdutos = document.querySelectorAll('#available-products .list-group-item');
+        valor = valor.toLowerCase();
+
+        listaProdutos.forEach(function (produto) {
+            var nomeProduto = produto.querySelector('span').innerText.toLowerCase();
+
+            if (nomeProduto.indexOf(valor) > -1) {
+                produto.style.display = '';
+            } else {
+                produto.style.display = 'none';
+            }
+        });
+    }
+
+    function abrirModalMetodoPagamento() {
+        $('#paymentModal').modal('show');
+    }
+
+    function abrirModalCliente() {
+        $('#customerModal').modal('show');
+    }
+
+    function selecionarMetodoPagamento() {
+        var selectedMethod = document.getElementById('paymentMethodModal').value;
+        document.getElementById('paymentMethod').value = selectedMethod;
+        $('#paymentModal').modal('hide');
+    }
+
+    function selecionarCliente() {
+        var selectedCustomer = document.getElementById('customerNameModal').value;
+        document.getElementById('customerName').value = selectedCustomer;
+        $('#customerModal').modal('hide');
+    }
+
+    // Adiciona eventos para detectar as teclas F7, F9, F10 e F4
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'F7') {
+            abrirModalMetodoPagamento();
+        } else if (event.key === 'F9') {
+            abrirModalCliente();
+        } else if (event.key === 'F10') {
+            finalizarCompra();
+        } else if (event.key === 'F4') {
+            // Exibe um prompt simulando um campo de entrada para escolher o item a ser cancelado
+            var codigoProduto = prompt('Digite o código do produto a ser cancelado:');
+            if (codigoProduto) {
+                var index = carrinho.findIndex(item => item.produto === codigoProduto);
+                if (index !== -1) {
+                    cancelarItem(index);
+                } else {
+                    alert('Produto não encontrado no carrinho.');
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
